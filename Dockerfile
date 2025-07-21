@@ -1,31 +1,29 @@
-# Image de base
+# Dockerfile
+
 FROM php:8.3-fpm
 
-# Installer les extensions nécessaires
+# Installer extensions nécessaires
 RUN apt-get update && apt-get install -y \
+    nginx \
+    supervisor \
     libpq-dev \
     libzip-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    && docker-php-ext-install pdo pdo_pgsql pgsql zip \
-    && rm -rf /var/lib/apt/lists/*
+    zip unzip \
+    && docker-php-ext-install pdo pdo_pgsql pgsql
 
-# Installer Composer
+# Copier Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Définir le dossier de travail
-WORKDIR /app
-
-# Copier le code de l'hôte vers le conteneur
+# Copier l'app
+WORKDIR /var/www/html
 COPY . .
 
-# Définir les permissions (optionnel)
-RUN chown -R www-data:www-data /app && chmod -R 755 /app
+# Copier la config nginx
+COPY nginx.conf /etc/nginx/sites-available/default
 
-# Exposer le port FPM
-EXPOSE 9000
+# Copier la config supervisor
+COPY supervisord.conf /etc/supervisord.conf
 
-# Lancer php-fpm en entrée
-CMD ["php-fpm"]
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord"]
