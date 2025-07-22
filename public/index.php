@@ -8,3 +8,5 @@ use App\Core\Router;
 
 
 Router::resolve($routes);
+
+echo "ttttttttttttttttttttttttttttttttt";
